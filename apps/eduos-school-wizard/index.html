@@ -287,7 +287,7 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
           </div>
           <div class="field-group">
             <label>🏙️ الإمارة / المنطقة</label>
-            <select id="selEmirateNew">
+            <select id="selEmirateNew" onchange="validateNewSchool()">
               <option value="">— اختر الدولة أولاً —</option>
             </select>
           </div>
@@ -751,6 +751,15 @@ function goStep(n) {
   updateStepsBar(n);
   document.getElementById('progressFill').style.width = (n/6*100) + '%';
   if(n===3) buildGradesTable();
+  if(n===4) {
+    // Sync authority + curriculum from new-school form if in manual mode
+    if(WIZ.isManual && WIZ._newAuthority) {
+      document.getElementById('selAuthority').value = WIZ._newAuthority;
+    }
+    if(WIZ.isManual) {
+      document.getElementById('autoCurriculumDisplay').textContent = '— يُرجى الاختيار أدناه —';
+    }
+  }
   if(n===6) buildReview();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -912,6 +921,68 @@ function checkManualName() {
 }
 
 // ============================================================
+// SCHOOL MODE SWITCHER
+// ============================================================
+function setSchoolMode(mode) {
+  const modeNewEl      = document.getElementById('modeNew');
+  const modeExistEl    = document.getElementById('modeExisting');
+  const newForm        = document.getElementById('newSchoolForm');
+  const existingForm   = document.getElementById('existingSchoolForm');
+
+  if (mode === 'new') {
+    modeNewEl.style.border      = '2.5px solid #6C3DD6';
+    modeNewEl.style.background  = '#f5f3ff';
+    modeExistEl.style.border    = '2.5px solid #e5e7eb';
+    modeExistEl.style.background= '#f9fafb';
+    newForm.style.display        = 'block';
+    existingForm.style.display   = 'none';
+    WIZ.isManual  = true;
+    WIZ.schoolData = null;
+    onCountryChangeNew();
+    validateNewSchool();
+  } else {
+    modeExistEl.style.border     = '2.5px solid #6C3DD6';
+    modeExistEl.style.background = '#f5f3ff';
+    modeNewEl.style.border       = '2.5px solid #e5e7eb';
+    modeNewEl.style.background   = '#f9fafb';
+    existingForm.style.display   = 'block';
+    newForm.style.display        = 'none';
+    WIZ.isManual  = false;
+    WIZ.schoolData = null;
+    document.getElementById('btnNext1').disabled = true;
+    onCountryChange();
+  }
+}
+
+function onCountryChangeNew() {
+  const country = document.getElementById('selCountryNew').value;
+  WIZ.country = country;
+  const emSel  = document.getElementById('selEmirateNew');
+  emSel.innerHTML = '<option value="">— اختر الإمارة —</option>';
+  (EMIRATES_BY_COUNTRY[country] || []).forEach(e => {
+    emSel.innerHTML += `<option value="${e.code}">${e.label}</option>`;
+  });
+  validateNewSchool();
+}
+
+function validateNewSchool() {
+  const nameAr    = document.getElementById('newNameAr').value.trim();
+  const nameEn    = document.getElementById('newNameEn').value.trim();
+  const emirate   = document.getElementById('selEmirateNew').value;
+  const schoolType= document.getElementById('newSchoolType').value;
+  const valid = !!(nameAr && nameEn && emirate && schoolType);
+  document.getElementById('btnNext1').disabled = !valid;
+  if (valid) {
+    WIZ.isManual       = true;
+    WIZ.manualNameAr   = nameAr;
+    WIZ.manualNameEn   = nameEn;
+    WIZ.emirate        = emirate;
+    WIZ._newSchoolType = schoolType;
+    WIZ._newAuthority  = document.getElementById('newAuthority').value;
+  }
+}
+
+// ============================================================
 // STEP 2 — LEVELS
 // ============================================================
 function buildLevelsGrid() {
@@ -993,10 +1064,12 @@ function gradeToggle(g) {
 // STEP 6 — REVIEW
 // ============================================================
 function buildReview() {
-  const name = WIZ.isManual ? WIZ.manualNameEn : (WIZ.schoolData?.name_en||'—');
-  document.getElementById('rv-name').textContent = name;
+  const nameAr = WIZ.isManual ? WIZ.manualNameAr : (WIZ.schoolData?.name_ar||WIZ.schoolData?.name_en||'—');
+  const nameEn = WIZ.isManual ? WIZ.manualNameEn : (WIZ.schoolData?.name_en||'');
+  document.getElementById('rv-name').textContent = nameAr + (nameEn && nameEn!==nameAr ? ' — '+nameEn : '');
   document.getElementById('rv-emirate').textContent = WIZ.emirate;
-  document.getElementById('rv-type').textContent = WIZ.isManual ? 'يدوي' : TYPE_LABELS[WIZ.schoolData?.school_type]||'—';
+  const typeVal = WIZ.isManual ? (WIZ._newSchoolType||'—') : (WIZ.schoolData?.school_type||'—');
+  document.getElementById('rv-type').textContent = TYPE_LABELS[typeVal]||typeVal;
   document.getElementById('rv-authority').textContent = document.getElementById('selAuthority').value;
   document.getElementById('rv-curriculum').textContent = CURRICULUM_LABELS[document.getElementById('selCurriculum').value]||'—';
   document.getElementById('rv-lang').textContent = LANG_LABELS[document.getElementById('selLang').value]||'—';
@@ -1052,7 +1125,7 @@ async function submitSchool() {
         levels: WIZ.levels,
         grades_detail: WIZ.grades,
       },
-      school_type: WIZ.schoolData?.school_type || 'private_arabic',
+      school_type: WIZ.isManual ? (WIZ._newSchoolType||'private_arabic') : (WIZ.schoolData?.school_type||'private_arabic'),
       admin: {
         name_ar: document.getElementById('adminNameAr').value,
         name_en: document.getElementById('adminNameEn').value,
