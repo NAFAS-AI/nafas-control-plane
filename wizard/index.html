@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معالج تسجيل المدرسة — EduOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<script src="../platform-config.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',Arial,sans-serif;background:#0D3333;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+
+.wizard-shell{width:100%;max-width:860px;}
+
+/* Header */
+.wiz-header{text-align:center;margin-bottom:32px;}
+.wiz-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;}
+.logo-box{width:52px;height:52px;background:linear-gradient(135deg,#6C3DD6,#22D3EE);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.logo-text{text-align:right;}
+.logo-text h1{font-size:22px;font-weight:800;color:#fff;}
+.logo-text p{font-size:12px;color:#22D3EE;font-weight:500;}
+.wiz-subtitle{color:rgba(255,255,255,0.65);font-size:14px;}
+
+/* Steps bar */
+.steps-bar{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px;}
+.step-item{display:flex;align-items:center;gap:0;}
+.step-dot{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;transition:all .3s;background:transparent;position:relative;}
+.step-dot.active{border-color:#22D3EE;color:#22D3EE;background:rgba(34,211,238,0.1);}
+.step-dot.done{border-color:#4ade80;background:#4ade80;color:#0D3333;}
+.step-label{font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;text-align:center;}
+.step-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.step-line{width:50px;height:2px;background:rgba(255,255,255,0.15);margin:0 4px;margin-bottom:20px;}
+.step-line.done{background:#4ade80;}
+
+/* Card */
+.wiz-card{background:#fff;border-radius:24px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+
+.panel-title{font-size:20px;font-weight:800;color:#1C2A2A;margin-bottom:6px;}
+.panel-sub{font-size:14px;color:#64748b;margin-bottom:28px;}
+
+/* Form elements */
+label{display:block;font-size:13px;font-weight:700;color:#334155;margin-bottom:6px;}
+select,input[type=text],input[type=email],input[type=tel]{
+  width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;
+  font-family:'Tajawal',Arial,sans-serif;font-size:15px;color:#1C2A2A;
+  background:#f8fafc;transition:border-color .2s;outline:none;
+  appearance:none;-webkit-appearance:none;
+}
+select:focus,input:focus{border-color:#6C3DD6;background:#fff;}
+select:disabled{opacity:0.5;cursor:not-allowed;}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.field-row.full{grid-template-columns:1fr;}
+.field-group{margin-bottom:18px;}
+
+/* School type chips */
+.type-chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+.type-chip{padding:8px 16px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:#475569;transition:all .2s;background:#f8fafc;}
+.type-chip:hover{border-color:#6C3DD6;color:#6C3DD6;background:#f0ebff;}
+.type-chip.selected{border-color:#6C3DD6;background:#6C3DD6;color:#fff;}
+.type-chip.all-chip.selected{border-color:#22D3EE;background:#22D3EE;color:#0D3333;}
+
+/* School search */
+.school-search-wrap{position:relative;margin-bottom:8px;}
+.school-search-wrap input{padding-right:44px;}
+.search-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:18px;pointer-events:none;}
+.school-results{border:2px solid #e2e8f0;border-radius:12px;max-height:260px;overflow-y:auto;background:#fff;}
+.school-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .15s;display:flex;justify-content:space-between;align-items:center;}
+.school-item:last-child{border-bottom:none;}
+.school-item:hover{background:#f0ebff;}
+.school-item.selected{background:#ede9fe;}
+.school-item-name{font-size:14px;font-weight:600;color:#1C2A2A;}
+.school-item-meta{font-size:11px;color:#94a3b8;margin-top:2px;}
+.school-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;}
+.badge-cbse{background:#fef3c7;color:#92400e;}
+.badge-british{background:#dbeafe;color:#1e40af;}
+.badge-ib{background:#d1fae5;color:#065f46;}
+.badge-american{background:#fee2e2;color:#991b1b;}
+.badge-arabic{background:#f0ebff;color:#4c1d95;}
+.badge-other{background:#f1f5f9;color:#475569;}
+.no-results{padding:24px;text-align:center;color:#94a3b8;font-size:14px;}
+
+/* Selected school display */
+.selected-school-card{background:linear-gradient(135deg,#f0ebff,#e0f2fe);border:2px solid #6C3DD6;border-radius:14px;padding:16px 20px;margin-bottom:18px;}
+.selected-school-card h3{font-size:16px;font-weight:800;color:#1C2A2A;margin-bottom:4px;}
+.selected-school-card p{font-size:12px;color:#475569;}
+.change-btn{font-size:12px;color:#6C3DD6;cursor:pointer;text-decoration:underline;float:left;}
+
+/* Grades table */
+.grades-table{border:2px solid #e2e8f0;border-radius:14px;overflow:hidden;}
+.grades-table table{width:100%;border-collapse:collapse;}
+.grades-table th{background:#f8fafc;padding:10px 14px;font-size:12px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;}
+.grades-table td{padding:10px 14px;border-bottom:1px solid #f1f5f9;font-size:14px;color:#1C2A2A;vertical-align:middle;}
+.grades-table tr:last-child td{border-bottom:none;}
+.grades-table input[type=number]{width:70px;padding:6px 10px;text-align:center;font-size:14px;}
+.grade-toggle{display:flex;align-items:center;gap:8px;}
+.toggle-switch{position:relative;width:40px;height:22px;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#e2e8f0;border-radius:22px;transition:.3s;}
+.toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+input:checked + .toggle-slider{background:#6C3DD6;}
+input:checked + .toggle-slider:before{transform:translateX(18px);}
+
+/* Admin info */
+.admin-card{background:#f8fafc;border-radius:14px;padding:20px;border:2px solid #e2e8f0;margin-bottom:18px;}
+.admin-card h3{font-size:14px;font-weight:700;color:#475569;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;}
+
+/* Review */
+.review-section{background:#f8fafc;border-radius:14px;padding:20px;margin-bottom:12px;border:2px solid #e2e8f0;}
+.review-section h3{font-size:13px;font-weight:700;color:#64748b;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
+.review-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;}
+.review-row:last-child{border-bottom:none;}
+.review-label{font-size:13px;color:#64748b;}
+.review-val{font-size:14px;font-weight:700;color:#1C2A2A;}
+
+/* Buttons */
+.btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px;}
+.btn-back{padding:12px 24px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;color:#475569;font-family:'Tajawal',Arial,sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-back:hover{border-color:#94a3b8;}
+.btn-next{padding:12px 32px;background:linear-gradient(135deg,#6C3DD6,#22D3EE);border:none;border-radius:12px;color:#fff;font-family:'Tajawal',Arial,sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,61,214,0.3);}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,61,214,0.4);}
+.btn-next:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.btn-submit{padding:12px 32px;background:linear-gradient(135deg,#059669,#10b981);border:none;border-radius:12px;color:#fff;font-family:'Tajawal',Arial,sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(5,150,105,0.3);}
+
+/* Progress */
+.wiz-progress{height:6px;background:rgba(255,255,255,0.15);border-radius:3px;margin-bottom:28px;overflow:hidden;}
+.wiz-progress-fill{height:100%;background:linear-gradient(90deg,#6C3DD6,#22D3EE);border-radius:3px;transition:width .4s ease;}
+
+/* Success */
+.success-screen{text-align:center;padding:40px 20px;}
+.success-icon{font-size:64px;margin-bottom:16px;}
+.success-title{font-size:24px;font-weight:800;color:#1C2A2A;margin-bottom:8px;}
+.success-sub{font-size:15px;color:#475569;margin-bottom:24px;line-height:1.6;}
+.school-url{background:linear-gradient(135deg,#f0ebff,#e0f2fe);border:2px solid #6C3DD6;border-radius:14px;padding:16px;font-size:16px;font-weight:700;color:#6C3DD6;margin-bottom:24px;direction:ltr;}
+.btn-go{display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#6C3DD6,#22D3EE);border:none;border-radius:12px;color:#fff;font-family:'Tajawal',Arial,sans-serif;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;}
+
+/* Loading spinner */
+.spinner-overlay{position:fixed;inset:0;background:rgba(13,51,51,0.85);z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.spinner-overlay.show{display:flex;}
+.spinner{width:52px;height:52px;border:5px solid rgba(255,255,255,0.2);border-top-color:#22D3EE;border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner-text{color:#fff;font-size:16px;font-weight:600;}
+
+/* Info box */
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;font-size:13px;color:#1d4ed8;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;}
+
+/* Count badge */
+.count-badge{display:inline-flex;align-items:center;gap:4px;background:#f0ebff;color:#6C3DD6;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-right:8px;}
+</style>
+</head>
+<body>
+
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner"></div>
+  <div class="spinner-text" id="spinnerText">جاري المعالجة...</div>
+</div>
+
+<div class="wizard-shell">
+
+  <!-- Header -->
+  <div class="wiz-header">
+    <div class="wiz-logo">
+      <div class="logo-box">🎓</div>
+      <div class="logo-text">
+        <h1>بوابة الجود الذكية</h1>
+        <p>Powered by EduOS · NAFAS FOR ARTIFICIAL INTELLIGENCE</p>
+      </div>
+    </div>
+    <div class="wiz-subtitle">معالج تسجيل مدرسة جديدة على منصة EduOS</div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="wiz-progress"><div class="wiz-progress-fill" id="progressFill" style="width:16.6%"></div></div>
+
+  <!-- Steps indicator -->
+  <div class="steps-bar">
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-label">المدرسة</div>
+      </div>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-dot" id="dot2">2</div>
+        <div class="step-label">المراحل</div>
+      </div>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-dot" id="dot3">3</div>
+        <div class="step-label">الصفوف</div>
+      </div>
+    </div>
+    <div class="step-line" id="line3"></div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-dot" id="dot4">4</div>
+        <div class="step-label">المنهج</div>
+      </div>
+    </div>
+    <div class="step-line" id="line4"></div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-dot" id="dot5">5</div>
+        <div class="step-label">المدير</div>
+      </div>
+    </div>
+    <div class="step-line" id="line5"></div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-dot" id="dot6">6</div>
+        <div class="step-label">مراجعة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="wiz-card">
+
+    <!-- STEP 1: School Selection -->
+    <div class="step-panel active" id="panel1">
+      <div class="panel-title">🏫 اختيار المدرسة</div>
+      <div class="panel-sub">اختر الدولة ثم الإمارة ثم المدرسة — تُعبأ البيانات تلقائياً</div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label>🌍 الدولة</label>
+          <select id="selCountry" onchange="onCountryChange()">
+            <option value="">— اختر الدولة —</option>
+            <option value="UAE" selected>🇦🇪 الإمارات العربية المتحدة</option>
+            <option value="SA">🇸🇦 المملكة العربية السعودية</option>
+            <option value="KW">🇰🇼 الكويت</option>
+            <option value="QA">🇶🇦 قطر</option>
+            <option value="BH">🇧🇭 البحرين</option>
+            <option value="OM">🇴🇲 عُمان</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>🏙️ الإمارة / المنطقة</label>
+          <select id="selEmirate" onchange="onEmirateChange()" disabled>
+            <option value="">— اختر أولاً —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- School type filter -->
+      <div class="field-group" id="typeFilterWrap" style="display:none;">
+        <label>نوع المدرسة <span class="count-badge" id="schoolCountBadge">0</span></label>
+        <div class="type-chips" id="typeChips">
+          <div class="type-chip all-chip selected" onclick="filterType('all')">الكل</div>
+          <div class="type-chip" onclick="filterType('government')">🏛️ حكومية</div>
+          <div class="type-chip" onclick="filterType('private_arabic')">🇦🇪 خاصة عربية</div>
+          <div class="type-chip" onclick="filterType('indian')">🇮🇳 هندية (CBSE)</div>
+          <div class="type-chip" onclick="filterType('private_international')">🌐 دولية</div>
+          <div class="type-chip" onclick="filterType('filipino')">🇵🇭 فلبينية</div>
+          <div class="type-chip" onclick="filterType('pakistani')">🇵🇰 باكستانية</div>
+        </div>
+      </div>
+
+      <!-- School search & list -->
+      <div id="schoolSearchWrap" style="display:none;">
+        <div class="school-search-wrap">
+          <input type="text" id="schoolSearch" placeholder="ابحث باسم المدرسة..." oninput="filterSchools()" />
+          <span class="search-icon">🔍</span>
+        </div>
+        <div class="school-results" id="schoolResults"></div>
+      </div>
+
+      <!-- Selected school display -->
+      <div class="selected-school-card" id="selectedSchoolCard" style="display:none;">
+        <span class="change-btn" onclick="changeSchool()">تغيير</span>
+        <h3 id="selectedSchoolName"></h3>
+        <p id="selectedSchoolMeta"></p>
+      </div>
+
+      <div class="info-box" id="notFoundInfo" style="display:none;">
+        ℹ️ مدرستك غير موجودة في القائمة؟
+        <strong style="cursor:pointer;text-decoration:underline;margin-right:6px;" onclick="showManualEntry()">أضفها يدوياً</strong>
+      </div>
+
+      <!-- Manual entry (hidden by default) -->
+      <div id="manualEntryWrap" style="display:none;background:#fff8f0;border:2px solid #fed7aa;border-radius:14px;padding:18px;margin-top:12px;">
+        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:12px;">📝 إدخال يدوي — تأكد من الاسم قبل المتابعة</div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>اسم المدرسة (عربي)</label>
+            <input type="text" id="manualNameAr" placeholder="مدرسة الطموح" />
+          </div>
+          <div class="field-group">
+            <label>School Name (English)</label>
+            <input type="text" id="manualNameEn" placeholder="Al Tomouh School" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>اسم المدرسة مرة أخرى للتأكيد</label>
+          <input type="text" id="manualNameConfirm" placeholder="تأكيد الاسم العربي" oninput="checkManualName()" />
+          <div id="nameMatchMsg" style="font-size:12px;margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <div></div>
+        <button class="btn-next" id="btnNext1" onclick="goStep(2)" disabled>التالي ←</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: School Levels -->
+    <div class="step-panel" id="panel2">
+      <div class="panel-title">📚 المراحل الدراسية</div>
+      <div class="panel-sub">اختر المراحل الموجودة في المدرسة</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;" id="levelsGrid">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(1)">→ السابق</button>
+        <button class="btn-next" id="btnNext2" onclick="goStep(3)">التالي ←</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Classes per grade -->
+    <div class="step-panel" id="panel3">
+      <div class="panel-title">🏷️ الشُعب لكل صف</div>
+      <div class="panel-sub">حدد عدد الشُعب (الفصول) لكل صف — كل صف مستقل</div>
+
+      <div class="grades-table" id="gradesTable">
+        <table>
+          <thead>
+            <tr>
+              <th>الصف</th>
+              <th>موجود</th>
+              <th>عدد الشُعب</th>
+            </tr>
+          </thead>
+          <tbody id="gradesTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(2)">→ السابق</button>
+        <button class="btn-next" onclick="goStep(4)">التالي ←</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Curriculum -->
+    <div class="step-panel" id="panel4">
+      <div class="panel-title">📖 نظام المنهج</div>
+      <div class="panel-sub">تم اكتشافه تلقائياً — يمكن التعديل إذا لزم</div>
+
+      <div style="background:linear-gradient(135deg,#f0ebff,#e0f2fe);border:2px solid #6C3DD6;border-radius:14px;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:12px;color:#6C3DD6;font-weight:700;margin-bottom:4px;">🤖 اكتُشف تلقائياً من بيانات المدرسة</div>
+        <div style="font-size:18px;font-weight:800;color:#1C2A2A;" id="autoCurriculumDisplay">—</div>
+      </div>
+
+      <div class="field-group">
+        <label>المنهج الدراسي <span style="font-size:11px;color:#94a3b8;">(عدّل إذا كان مختلفاً)</span></label>
+        <select id="selCurriculum">
+          <option value="MOE_UAE">وزارة التربية الإماراتية (MOE-UAE)</option>
+          <option value="CBSE">المنهج الهندي (CBSE)</option>
+          <option value="British">المنهج البريطاني</option>
+          <option value="American">المنهج الأمريكي</option>
+          <option value="IB">البكالوريا الدولية (IB)</option>
+          <option value="French">المنهج الفرنسي</option>
+          <option value="Australian">المنهج الأسترالي</option>
+          <option value="SABIS">SABIS</option>
+          <option value="DepEd">المنهج الفلبيني (DepEd)</option>
+          <option value="Pakistan_Board">المنهج الباكستاني</option>
+          <option value="Other">آخر</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label>لغة التدريس الأساسية</label>
+          <select id="selLang">
+            <option value="ar">العربية</option>
+            <option value="en">الإنجليزية</option>
+            <option value="bilingual">ثنائي اللغة</option>
+            <option value="fr">الفرنسية</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>الفصول الدراسية في السنة</label>
+          <select id="selTerms">
+            <option value="2">فصلان (Semester)</option>
+            <option value="3">ثلاثة فصول (Term)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>الجهة التعليمية المشرفة</label>
+        <select id="selAuthority">
+          <option value="ADEK">ADEK — أبوظبي</option>
+          <option value="KHDA">KHDA — دبي</option>
+          <option value="SPEA">SPEA — الشارقة</option>
+          <option value="MOE">MOE — وزارة التربية الاتحادية</option>
+          <option value="MOE_Private">خاصة — وزارة التربية</option>
+        </select>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(3)">→ السابق</button>
+        <button class="btn-next" onclick="goStep(5)">التالي ←</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Admin account -->
+    <div class="step-panel" id="panel5">
+      <div class="panel-title">👤 حساب مدير المدرسة</div>
+      <div class="panel-sub">سيُستخدم للدخول الأول على المنصة</div>
+
+      <div class="admin-card">
+        <h3>معلومات المدير</h3>
+        <div class="field-row">
+          <div class="field-group">
+            <label>الاسم الكامل (عربي)</label>
+            <input type="text" id="adminNameAr" placeholder="محمد أحمد الراشدي" />
+          </div>
+          <div class="field-group">
+            <label>Full Name (English)</label>
+            <input type="text" id="adminNameEn" placeholder="Mohammed Al Rashdi" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="adminEmail" placeholder="admin@school.ae" dir="ltr" />
+          </div>
+          <div class="field-group">
+            <label>رقم الهاتف</label>
+            <input type="tel" id="adminPhone" placeholder="+971 50 000 0000" dir="ltr" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>اسم المستخدم <span style="font-size:11px;color:#94a3b8;">(للدخول)</span></label>
+          <input type="text" id="adminUsername" placeholder="m.alrashdi" dir="ltr" />
+        </div>
+      </div>
+
+      <div class="info-box">
+        🔒 سيتم إرسال كلمة المرور الأولى تلقائياً على البريد الإلكتروني المدخل.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(4)">→ السابق</button>
+        <button class="btn-next" id="btnNext5" onclick="goStep(6)">التالي ←</button>
+      </div>
+    </div>
+
+    <!-- STEP 6: Review & Submit -->
+    <div class="step-panel" id="panel6">
+      <div class="panel-title">✅ مراجعة وتأكيد</div>
+      <div class="panel-sub">راجع البيانات قبل إنشاء المدرسة</div>
+
+      <div class="review-section">
+        <h3>🏫 بيانات المدرسة</h3>
+        <div class="review-row"><span class="review-label">الاسم</span><span class="review-val" id="rv-name">—</span></div>
+        <div class="review-row"><span class="review-label">الإمارة</span><span class="review-val" id="rv-emirate">—</span></div>
+        <div class="review-row"><span class="review-label">النوع</span><span class="review-val" id="rv-type">—</span></div>
+        <div class="review-row"><span class="review-label">الجهة</span><span class="review-val" id="rv-authority">—</span></div>
+      </div>
+
+      <div class="review-section">
+        <h3>📚 المنهج والتعليم</h3>
+        <div class="review-row"><span class="review-label">المنهج</span><span class="review-val" id="rv-curriculum">—</span></div>
+        <div class="review-row"><span class="review-label">لغة التدريس</span><span class="review-val" id="rv-lang">—</span></div>
+        <div class="review-row"><span class="review-label">الفصول</span><span class="review-val" id="rv-terms">—</span></div>
+        <div class="review-row"><span class="review-label">إجمالي الشُعب</span><span class="review-val" id="rv-classes">—</span></div>
+      </div>
+
+      <div class="review-section">
+        <h3>👤 مدير المدرسة</h3>
+        <div class="review-row"><span class="review-label">الاسم</span><span class="review-val" id="rv-admin-name">—</span></div>
+        <div class="review-row"><span class="review-label">البريد</span><span class="review-val" id="rv-admin-email">—</span></div>
+        <div class="review-row"><span class="review-label">المستخدم</span><span class="review-val" id="rv-admin-user">—</span></div>
+      </div>
+
+      <div class="info-box">
+        ⚡ سيتم إنشاء قاعدة بيانات مستقلة للمدرسة وإعداد الصلاحيات تلقائياً. العملية تستغرق 30–60 ثانية.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(5)">→ السابق</button>
+        <button class="btn-submit" onclick="submitSchool()">🚀 إنشاء المدرسة</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="step-panel" id="panelSuccess">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">تم إنشاء المدرسة بنجاح!</div>
+        <div class="success-sub">تمت عملية التسجيل. يمكن الدخول على المنصة الآن من الرابط أدناه.</div>
+        <div class="school-url" id="successUrl">loading...</div>
+        <a class="btn-go" id="successBtn" href="#">افتح المنصة</a>
+        <div style="margin-top:16px;font-size:13px;color:#94a3b8;">
+          تم إرسال بيانات الدخول على البريد الإلكتروني للمدير
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /wiz-card -->
+
+  <!-- Footer -->
+  <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,0.4);">
+    NAFAS FOR ARTIFICIAL INTELLIGENCE · CN-6573712 · أبوظبي، الإمارات العربية المتحدة
+  </div>
+
+</div><!-- /wizard-shell -->
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const WIZ = {
+  step: 1,
+  country: 'UAE',
+  emirate: '',
+  schoolType: 'all',
+  schoolData: null,       // selected from directory
+  isManual: false,
+  manualNameAr: '',
+  manualNameEn: '',
+  levels: [],             // selected levels
+  grades: {},             // { grade: { enabled, sections } }
+  curriculum: '',
+  lang: '',
+  terms: 2,
+  authority: '',
+  admin: {},
+  allSchools: [],         // loaded from DB
+  filteredSchools: [],
+};
+
+const EMIRATES_BY_COUNTRY = {
+  UAE: [
+    {code:'Abu Dhabi', label:'أبوظبي'},
+    {code:'Dubai', label:'دبي'},
+    {code:'Sharjah', label:'الشارقة'},
+    {code:'Ajman', label:'عجمان'},
+    {code:'Ras Al Khaimah', label:'رأس الخيمة'},
+    {code:'Fujairah', label:'الفجيرة'},
+    {code:'Umm Al Quwain', label:'أم القيوين'},
+  ],
+  SA: [{code:'Riyadh', label:'الرياض'},{code:'Jeddah', label:'جدة'},{code:'Dammam', label:'الدمام'},{code:'Mecca', label:'مكة المكرمة'}],
+  KW: [{code:'Kuwait City', label:'مدينة الكويت'},{code:'Hawalli', label:'حولي'},{code:'Ahmadi', label:'الأحمدي'}],
+  QA: [{code:'Doha', label:'الدوحة'},{code:'Al Rayyan', label:'الريان'},{code:'Al Wakrah', label:'الوكرة'}],
+  BH: [{code:'Manama', label:'المنامة'},{code:'Muharraq', label:'المحرق'},{code:'Riffa', label:'الرفاع'}],
+  OM: [{code:'Muscat', label:'مسقط'},{code:'Salalah', label:'صلالة'},{code:'Sohar', label:'صحار'}],
+};
+
+const LEVELS_CONFIG = [
+  {id:'KG', label:'روضة (KG)', grades:['KG1','KG2']},
+  {id:'Primary1', label:'ابتدائي 1–3', grades:['G1','G2','G3']},
+  {id:'Primary2', label:'ابتدائي 4–6', grades:['G4','G5','G6']},
+  {id:'Middle', label:'إعدادي 7–9', grades:['G7','G8','G9']},
+  {id:'Secondary', label:'ثانوي 10–12', grades:['G10','G11','G12']},
+];
+
+const GRADE_LABELS = {
+  KG1:'روضة أولى KG1', KG2:'روضة ثانية KG2',
+  G1:'الصف الأول', G2:'الصف الثاني', G3:'الصف الثالث',
+  G4:'الصف الرابع', G5:'الصف الخامس', G6:'الصف السادس',
+  G7:'الصف السابع', G8:'الصف الثامن', G9:'الصف التاسع',
+  G10:'الصف العاشر', G11:'الحادي عشر', G12:'الثاني عشر',
+};
+
+const TYPE_LABELS = {
+  government:'حكومية', private_arabic:'خاصة عربية', indian:'هندية (CBSE)',
+  private_international:'دولية', filipino:'فلبينية', pakistani:'باكستانية',
+  all:'الكل',
+};
+
+const CURRICULUM_LABELS = {
+  MOE_UAE:'وزارة التربية الإماراتية', CBSE:'المنهج الهندي (CBSE)',
+  British:'المنهج البريطاني', American:'المنهج الأمريكي', IB:'IB بكالوريا دولية',
+  French:'المنهج الفرنسي', Australian:'المنهج الأسترالي', SABIS:'SABIS',
+  DepEd:'المنهج الفلبيني', Pakistan_Board:'المنهج الباكستاني', Other:'آخر',
+};
+
+const LANG_LABELS = {ar:'العربية', en:'الإنجليزية', bilingual:'ثنائي اللغة', fr:'الفرنسية'};
+
+// ============================================================
+// STEP NAVIGATION
+// ============================================================
+function goStep(n) {
+  document.getElementById('panel'+WIZ.step).classList.remove('active');
+  if(WIZ.step === 'Success') return;
+  WIZ.step = n;
+  document.getElementById('panel'+n).classList.add('active');
+  updateStepsBar(n);
+  document.getElementById('progressFill').style.width = (n/6*100) + '%';
+  if(n===3) buildGradesTable();
+  if(n===6) buildReview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateStepsBar(active) {
+  for(let i=1;i<=6;i++){
+    const dot = document.getElementById('dot'+i);
+    dot.classList.remove('active','done');
+    if(i<active) { dot.classList.add('done'); dot.textContent='✓'; }
+    else if(i===active) { dot.classList.add('active'); dot.textContent=i; }
+    else { dot.textContent=i; }
+    if(i<6){
+      const line=document.getElementById('line'+i);
+      line.classList.toggle('done',i<active);
+    }
+  }
+}
+
+// ============================================================
+// STEP 1 — SCHOOL SELECTION
+// ============================================================
+function onCountryChange() {
+  const country = document.getElementById('selCountry').value;
+  WIZ.country = country;
+  const emSel = document.getElementById('selEmirate');
+  emSel.innerHTML = '<option value="">— اختر الإمارة —</option>';
+  const emirates = EMIRATES_BY_COUNTRY[country] || [];
+  emirates.forEach(e => {
+    emSel.innerHTML += `<option value="${e.code}">${e.label}</option>`;
+  });
+  emSel.disabled = !country;
+  document.getElementById('typeFilterWrap').style.display='none';
+  document.getElementById('schoolSearchWrap').style.display='none';
+  document.getElementById('selectedSchoolCard').style.display='none';
+  document.getElementById('notFoundInfo').style.display='none';
+  WIZ.schoolData = null;
+  document.getElementById('btnNext1').disabled = true;
+}
+
+function onEmirateChange() {
+  const emirate = document.getElementById('selEmirate').value;
+  WIZ.emirate = emirate;
+  if(!emirate) return;
+  loadSchoolsForEmirate(emirate);
+}
+
+async function loadSchoolsForEmirate(emirate) {
+  showSpinner('جاري تحميل المدارس...');
+  try {
+    const NAFAS_URL = 'https://wuwwfsbaskhjtegtraot.supabase.co';
+    const NAFAS_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d3dmc2Jhc2toanRlZ3RyYW90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODU0MDYsImV4cCI6MjA5ODg2MTQwNn0.JQgRajxz0bu19s0IrvrTjAdugoRty4-m2arz6UZBiGk';
+    // Use Management API proxy via edge function or direct fetch
+    // For now, use hardcoded school data loaded at init
+    const schools = WIZ._allSchoolsRaw ? WIZ._allSchoolsRaw.filter(s => s.emirate === emirate) : [];
+    WIZ.allSchools = schools;
+    WIZ.filteredSchools = schools;
+    renderSchoolList(schools);
+    document.getElementById('schoolCountBadge').textContent = schools.length + ' مدرسة';
+    document.getElementById('typeFilterWrap').style.display='block';
+    document.getElementById('schoolSearchWrap').style.display='block';
+    document.getElementById('notFoundInfo').style.display='block';
+  } catch(e) {
+    console.error(e);
+  }
+  hideSpinner();
+}
+
+function filterType(type) {
+  WIZ.schoolType = type;
+  // update chips
+  document.querySelectorAll('.type-chip').forEach(c=>{
+    c.classList.remove('selected');
+    if((c.textContent.includes('الكل') && type==='all') ||
+       c.getAttribute('onclick')==='filterType(\''+type+'\')') c.classList.add('selected');
+  });
+  const search = document.getElementById('schoolSearch').value.toLowerCase();
+  let filtered = WIZ.allSchools;
+  if(type!=='all') filtered = filtered.filter(s=>s.school_type===type);
+  if(search) filtered = filtered.filter(s=>(s.name_en||'').toLowerCase().includes(search)||(s.name_ar||'').includes(search));
+  WIZ.filteredSchools = filtered;
+  document.getElementById('schoolCountBadge').textContent = filtered.length + ' مدرسة';
+  renderSchoolList(filtered);
+}
+
+function filterSchools() {
+  const q = document.getElementById('schoolSearch').value.toLowerCase();
+  let filtered = WIZ.allSchools;
+  if(WIZ.schoolType!=='all') filtered = filtered.filter(s=>s.school_type===WIZ.schoolType);
+  if(q) filtered = filtered.filter(s=>
+    (s.name_en||'').toLowerCase().includes(q) ||
+    (s.name_ar||'').includes(document.getElementById('schoolSearch').value)
+  );
+  WIZ.filteredSchools = filtered;
+  renderSchoolList(filtered);
+}
+
+const BADGE_MAP = {
+  CBSE:'badge-cbse', British:'badge-british', IB:'badge-ib',
+  American:'badge-american', MOE_UAE:'badge-arabic',
+};
+
+function renderSchoolList(schools) {
+  const el = document.getElementById('schoolResults');
+  if(!schools.length) {
+    el.innerHTML = '<div class="no-results">لا توجد نتائج — جرّب تصفية مختلفة أو أضف مدرستك يدوياً</div>';
+    return;
+  }
+  el.innerHTML = schools.map(s=>`
+    <div class="school-item" onclick="selectSchool('${s.id}')">
+      <div>
+        <div class="school-item-name">${s.name_ar || s.name_en || '—'}</div>
+        <div class="school-item-meta">${s.name_en||''} · ${s.authority||''}</div>
+      </div>
+      <span class="school-badge ${BADGE_MAP[s.curriculum]||'badge-other'}">${s.curriculum||''}</span>
+    </div>
+  `).join('');
+}
+
+function selectSchool(id) {
+  const school = WIZ.allSchools.find(s=>s.id===id) || WIZ.filteredSchools.find(s=>s.id===id);
+  if(!school) return;
+  WIZ.schoolData = school;
+  WIZ.isManual = false;
+  document.getElementById('selectedSchoolName').textContent = school.name_ar || school.name_en;
+  document.getElementById('selectedSchoolMeta').textContent =
+    `${school.name_en||''} · ${school.emirate} · ${TYPE_LABELS[school.school_type]||school.school_type} · ${CURRICULUM_LABELS[school.curriculum]||school.curriculum}`;
+  document.getElementById('selectedSchoolCard').style.display='block';
+  document.getElementById('schoolSearchWrap').style.display='none';
+  document.getElementById('typeFilterWrap').style.display='none';
+  document.getElementById('notFoundInfo').style.display='none';
+  document.getElementById('btnNext1').disabled = false;
+  // Auto-set curriculum
+  document.getElementById('selCurriculum').value = school.curriculum || 'MOE_UAE';
+  document.getElementById('autoCurriculumDisplay').textContent = CURRICULUM_LABELS[school.curriculum] || school.curriculum;
+  document.getElementById('selAuthority').value = school.authority || 'MOE';
+}
+
+function changeSchool() {
+  WIZ.schoolData = null;
+  document.getElementById('selectedSchoolCard').style.display='none';
+  document.getElementById('schoolSearchWrap').style.display='block';
+  document.getElementById('typeFilterWrap').style.display='block';
+  document.getElementById('notFoundInfo').style.display='block';
+  document.getElementById('btnNext1').disabled = true;
+  document.getElementById('schoolSearch').value = '';
+  renderSchoolList(WIZ.allSchools);
+}
+
+function showManualEntry() {
+  document.getElementById('manualEntryWrap').style.display='block';
+  document.getElementById('notFoundInfo').style.display='none';
+}
+
+function checkManualName() {
+  const n1 = document.getElementById('manualNameAr').value.trim();
+  const n2 = document.getElementById('manualNameConfirm').value.trim();
+  const msg = document.getElementById('nameMatchMsg');
+  if(!n2) { msg.textContent=''; return; }
+  if(n1===n2) {
+    msg.textContent='✅ الاسم متطابق';
+    msg.style.color='#059669';
+    WIZ.isManual=true;
+    WIZ.manualNameAr=n1;
+    WIZ.manualNameEn=document.getElementById('manualNameEn').value.trim();
+    document.getElementById('btnNext1').disabled = false;
+  } else {
+    msg.textContent='❌ الاسم غير متطابق — تحقق من الكتابة';
+    msg.style.color='#dc2626';
+    document.getElementById('btnNext1').disabled = true;
+  }
+}
+
+// ============================================================
+// STEP 2 — LEVELS
+// ============================================================
+function buildLevelsGrid() {
+  const grid = document.getElementById('levelsGrid');
+  grid.innerHTML = LEVELS_CONFIG.map(l=>`
+    <div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s;" 
+         id="level_${l.id}" onclick="toggleLevel('${l.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#1C2A2A;">${l.label}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:3px;">${l.grades.join(' · ')}</div>
+        </div>
+        <div class="level-check" id="lc_${l.id}" style="width:24px;height:24px;border:2px solid #e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleLevel(id) {
+  const el = document.getElementById('level_'+id);
+  const check = document.getElementById('lc_'+id);
+  const idx = WIZ.levels.indexOf(id);
+  if(idx>-1) {
+    WIZ.levels.splice(idx,1);
+    el.style.border='2px solid #e2e8f0';
+    el.style.background='#f8fafc';
+    check.textContent='';
+  } else {
+    WIZ.levels.push(id);
+    el.style.border='2px solid #6C3DD6';
+    el.style.background='#f0ebff';
+    check.textContent='✓';
+    check.style.color='#6C3DD6';
+  }
+}
+
+// ============================================================
+// STEP 3 — GRADES TABLE
+// ============================================================
+function buildGradesTable() {
+  const tbody = document.getElementById('gradesTbody');
+  const allGrades = [];
+  WIZ.levels.forEach(lid=>{
+    const lv = LEVELS_CONFIG.find(l=>l.id===lid);
+    if(lv) allGrades.push(...lv.grades);
+  });
+  if(!allGrades.length) {
+    tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px;">لم تختر أي مرحلة — ارجع للخطوة السابقة</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allGrades.map(g=>`
+    <tr>
+      <td>${GRADE_LABELS[g]||g}</td>
+      <td>
+        <label class="toggle-switch">
+          <input type="checkbox" id="ge_${g}" checked onchange="gradeToggle('${g}')">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <input type="number" id="gs_${g}" min="1" max="20" value="${WIZ.grades[g]?.sections||3}" 
+               oninput="WIZ.grades['${g}']={enabled:true,sections:parseInt(this.value)||1}">
+      </td>
+    </tr>
+  `).join('');
+  allGrades.forEach(g=>{
+    if(!WIZ.grades[g]) WIZ.grades[g]={enabled:true,sections:3};
+  });
+}
+
+function gradeToggle(g) {
+  const enabled = document.getElementById('ge_'+g).checked;
+  const secInput = document.getElementById('gs_'+g);
+  secInput.disabled = !enabled;
+  WIZ.grades[g] = {enabled, sections: parseInt(secInput.value)||3};
+}
+
+// ============================================================
+// STEP 6 — REVIEW
+// ============================================================
+function buildReview() {
+  const name = WIZ.isManual ? WIZ.manualNameEn : (WIZ.schoolData?.name_en||'—');
+  document.getElementById('rv-name').textContent = name;
+  document.getElementById('rv-emirate').textContent = WIZ.emirate;
+  document.getElementById('rv-type').textContent = WIZ.isManual ? 'يدوي' : TYPE_LABELS[WIZ.schoolData?.school_type]||'—';
+  document.getElementById('rv-authority').textContent = document.getElementById('selAuthority').value;
+  document.getElementById('rv-curriculum').textContent = CURRICULUM_LABELS[document.getElementById('selCurriculum').value]||'—';
+  document.getElementById('rv-lang').textContent = LANG_LABELS[document.getElementById('selLang').value]||'—';
+  document.getElementById('rv-terms').textContent = document.getElementById('selTerms').value + ' فصول';
+  const totalClasses = Object.values(WIZ.grades).filter(g=>g.enabled).reduce((s,g)=>s+(g.sections||0),0);
+  document.getElementById('rv-classes').textContent = totalClasses + ' شعبة';
+  document.getElementById('rv-admin-name').textContent = document.getElementById('adminNameAr').value||'—';
+  document.getElementById('rv-admin-email').textContent = document.getElementById('adminEmail').value||'—';
+  document.getElementById('rv-admin-user').textContent = document.getElementById('adminUsername').value||'—';
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+async function submitSchool() {
+  showSpinner('جاري إنشاء المدرسة... يُرجى الانتظار');
+  try {
+    const nameEn = WIZ.isManual ? WIZ.manualNameEn : WIZ.schoolData?.name_en;
+    const nameAr = WIZ.isManual ? WIZ.manualNameAr : (WIZ.schoolData?.name_ar||nameEn);
+    // Generate slug — prefer English name, fallback to basic slug
+    const slugBase = nameEn || nameAr || 'school';
+    const slug = slugBase.toLowerCase().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'').replace(/^-+|-+$/g,'') || 'school-' + Date.now();
+    const domain = slug + '.eduos.ae';
+
+    // Convert grades object → array of enabled grade names (EF expects array)
+    const gradesArray = Object.entries(WIZ.grades)
+      .filter(([, v]) => v.enabled)
+      .map(([k]) => k);
+
+    // Total sections count
+    const totalSections = Object.values(WIZ.grades)
+      .filter(v => v.enabled)
+      .reduce((s, v) => s + (v.sections || 0), 0);
+
+    const curriculumVal = document.getElementById('selCurriculum').value;
+    const termsVal = parseInt(document.getElementById('selTerms').value);
+
+    // Call create-school edge function — field names matched to EF expectations
+    const payload = {
+      name_en: nameEn,
+      name_ar: nameAr,
+      country: WIZ.country,          // EF expects 'country' not 'country_code'
+      city: WIZ.emirate,             // EF expects 'city' not 'emirate'
+      system: curriculumVal,         // EF expects 'system' for education system
+      grades: gradesArray,           // EF expects array not object
+      classes_per_grade: totalSections,
+      curriculum: curriculumVal,
+      authority: document.getElementById('selAuthority').value,
+      lang: document.getElementById('selLang').value,
+      terms: termsVal,
+      schedule: {
+        term_count: termsVal,
+        levels: WIZ.levels,
+        grades_detail: WIZ.grades,
+      },
+      school_type: WIZ.schoolData?.school_type || 'private_arabic',
+      admin: {
+        name_ar: document.getElementById('adminNameAr').value,
+        name_en: document.getElementById('adminNameEn').value,
+        email: document.getElementById('adminEmail').value,
+        phone: document.getElementById('adminPhone').value,
+        username: document.getElementById('adminUsername').value,
+      },
+      subdomain: slug,
+    };
+
+    const resp = await fetch('https://wuwwfsbaskhjtegtraot.supabase.co/functions/v1/create-school', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d3dmc2Jhc2toanRlZ3RyYW90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODU0MDYsImV4cCI6MjA5ODg2MTQwNn0.JQgRajxz0bu19s0IrvrTjAdugoRty4-m2arz6UZBiGk'},
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    hideSpinner();
+    if(data.success || data.school_ref) {
+      const url = 'https://' + domain;
+      document.getElementById('successUrl').textContent = url;
+      document.getElementById('successBtn').href = url;
+      document.getElementById('panel6').classList.remove('active');
+      document.getElementById('panelSuccess').classList.add('active');
+      document.getElementById('progressFill').style.width='100%';
+    } else {
+      alert('حدث خطأ: ' + (data.error||JSON.stringify(data)));
+    }
+  } catch(e) {
+    hideSpinner();
+    alert('خطأ في الاتصال: ' + e.message);
+  }
+}
+
+// ============================================================
+// SPINNER
+// ============================================================
+function showSpinner(txt) {
+  document.getElementById('spinnerText').textContent = txt||'جاري المعالجة...';
+  document.getElementById('spinnerOverlay').classList.add('show');
+}
+function hideSpinner() {
+  document.getElementById('spinnerOverlay').classList.remove('show');
+}
+
+// ============================================================
+// INIT — Load schools from nafas-control
+// ============================================================
+async function init() {
+  buildLevelsGrid();
+  // Load all schools from nafas-control via public REST
+  try {
+    const r = await fetch('https://wuwwfsbaskhjtegtraot.supabase.co/rest/v1/school_directory?select=id,name_en,name_ar,emirate,authority,school_type,curriculum&limit=1000', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d3dmc2Jhc2toanRlZ3RyYW90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODU0MDYsImV4cCI6MjA5ODg2MTQwNn0.JQgRajxz0bu19s0IrvrTjAdugoRty4-m2arz6UZBiGk',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d3dmc2Jhc2toanRlZ3RyYW90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODU0MDYsImV4cCI6MjA5ODg2MTQwNn0.JQgRajxz0bu19s0IrvrTjAdugoRty4-m2arz6UZBiGk',
+      }
+    });
+    const data = await r.json();
+    if(Array.isArray(data)) {
+      WIZ._allSchoolsRaw = data;
+      console.log('Loaded', data.length, 'schools from nafas-control');
+    }
+  } catch(e) { console.warn('Could not load schools:', e); }
+}
+
+init();
+</script>
+</body>
+</html>
