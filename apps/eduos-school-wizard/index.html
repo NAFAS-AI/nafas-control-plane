@@ -800,9 +800,21 @@ function onEmirateChange() {
 async function loadSchoolsForEmirate(emirate) {
   showSpinner('جاري تحميل المدارس...');
   try {
-    const schools = WIZ._allSchoolsRaw ? WIZ._allSchoolsRaw.filter(s => s.emirate === emirate) : [];
+    // Always fetch fresh from Supabase — no race condition with _allSchoolsRaw
+    const encEmirate = encodeURIComponent(emirate);
+    const r = await fetch(
+      `https://wuwwfsbaskhjtegtraot.supabase.co/rest/v1/school_directory?select=id,name_en,name_ar,emirate,authority,school_type,curriculum&emirate=eq.${encEmirate}&order=name_ar.asc&limit=500`,
+      { headers: { 'apikey': NAFAS_ANON, 'Authorization': 'Bearer '+NAFAS_ANON } }
+    );
+    const schools = await r.json();
+    if (!Array.isArray(schools)) throw new Error('bad response');
     WIZ.allSchools = schools;
     WIZ.filteredSchools = schools;
+    // Reset type filter to "الكل"
+    document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('selected'));
+    const allChip = document.querySelector('.all-chip');
+    if(allChip) allChip.classList.add('selected');
+    WIZ.schoolType = 'all';
     renderSchoolDropdown(schools);
     document.getElementById('schoolCountBadge').textContent = schools.length + ' مدرسة';
     document.getElementById('typeFilterWrap').style.display='block';
@@ -810,6 +822,7 @@ async function loadSchoolsForEmirate(emirate) {
     document.getElementById('notFoundInfo').style.display='block';
   } catch(e) {
     console.error(e);
+    document.getElementById('schoolCountBadge').textContent = '0 مدرسة';
   }
   hideSpinner();
 }
