@@ -1055,6 +1055,8 @@ function hideSpinner() {
 // ============================================================
 async function init() {
   buildLevelsGrid();
+  // Trigger country change to populate emirate dropdown (UAE pre-selected in HTML)
+  onCountryChange();
   // Load all schools from nafas-control via public REST
   try {
     const r = await fetch('https://wuwwfsbaskhjtegtraot.supabase.co/rest/v1/school_directory?select=id,name_en,name_ar,emirate,authority,school_type,curriculum&limit=1000', {
