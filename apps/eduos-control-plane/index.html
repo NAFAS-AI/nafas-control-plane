@@ -155,6 +155,59 @@ body{font-family:'Tajawal',Arial,sans-serif;background:#0D1A1A;color:#E8E3DC;min
 </style>
 </head>
 <body>
+<!-- ══ NAFAS PASSWORD GATE ══ -->
+<div id="nafasGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#060e0e;display:flex;align-items:center;justify-content:center;font-family:'Tajawal',Arial,sans-serif">
+  <div style="background:#0D1A1A;border:1px solid rgba(212,168,75,.3);border-radius:20px;padding:48px 40px;width:380px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+    <div style="width:64px;height:64px;background:linear-gradient(135deg,#6C3DD6,#22D3EE);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 20px">🔐</div>
+    <div style="font-size:22px;font-weight:900;color:#D4A84B;margin-bottom:4px">NAFAS Control</div>
+    <div style="font-size:14px;color:rgba(255,255,255,.4);margin-bottom:28px">منطقة مقيّدة — NAFAS FOR ARTIFICIAL INTELLIGENCE</div>
+    <input id="gateInput" type="password" placeholder="أدخل كلمة المرور" autocomplete="off"
+      style="width:100%;padding:14px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#E8E3DC;font-size:16px;font-family:'Tajawal',Arial,sans-serif;outline:none;margin-bottom:12px;direction:ltr;text-align:center"
+      onkeydown="if(event.key==='Enter')gateSubmit()">
+    <div id="gateError" style="color:#f87171;font-size:13px;min-height:20px;margin-bottom:8px"></div>
+    <button onclick="gateSubmit()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#6C3DD6,#22D3EE);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:'Tajawal',Arial,sans-serif">
+      دخول &#8592;
+    </button>
+    <div style="margin-top:20px;font-size:12px;color:rgba(255,255,255,.25)">© 2026 NAFAS FOR ARTIFICIAL INTELLIGENCE · CN-6573712</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const HASH = '4c412010a855301a3e0741f63a784786f37f88e7adc7a4bfa13b614686666d3c';
+  const KEY  = 'nafas_ctrl_auth';
+
+  async function sha256(str){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function gateSubmit(){
+    const val = document.getElementById('gateInput').value;
+    const h   = await sha256(val);
+    if(h === HASH){
+      sessionStorage.setItem(KEY,'1');
+      document.getElementById('nafasGate').style.display = 'none';
+    } else {
+      const err = document.getElementById('gateError');
+      err.textContent = 'كلمة المرور غير صحيحة';
+      document.getElementById('gateInput').value = '';
+      setTimeout(()=>err.textContent='', 2500);
+    }
+  }
+  window.gateSubmit = gateSubmit;
+
+  if(sessionStorage.getItem(KEY) !== '1'){
+    document.getElementById('nafasGate').style.display = 'flex';
+    setTimeout(()=>document.getElementById('gateInput').focus(), 100);
+  } else {
+    document.getElementById('nafasGate').style.display = 'none';
+  }
+})();
+</script>
+<!-- ══ END GATE ══ -->
+
 
 <!-- Header -->
 <div class="header">
@@ -552,3 +605,4 @@ loadSchools();
 </script>
 </body>
 </html>
+

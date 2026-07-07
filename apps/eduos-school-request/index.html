@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EduOS — طلب انضمام مدرستك</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',Arial,sans-serif;background:#0f1c2e;color:#1C2A2A;min-height:100vh}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,#0D3333 0%,#0f1c2e 60%,#1a0a3e 100%);padding:64px 24px 80px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(108,61,214,.15) 0%,transparent 60%)}
+.logo-box{width:80px;height:80px;background:linear-gradient(135deg,#6C3DD6,#22D3EE);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 20px;box-shadow:0 8px 32px rgba(108,61,214,.4)}
+.hero-title{font-size:40px;font-weight:900;color:#fff;margin-bottom:8px;line-height:1.2}
+.hero-title span{background:linear-gradient(135deg,#D4A84B,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:18px;color:rgba(255,255,255,.6);max-width:520px;margin:0 auto 32px}
+.hero-badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.badge{padding:8px 18px;border-radius:20px;font-size:14px;font-weight:700}
+.badge-purple{background:rgba(108,61,214,.2);color:#a78bfa;border:1px solid rgba(108,61,214,.3)}
+.badge-gold{background:rgba(212,168,75,.15);color:#D4A84B;border:1px solid rgba(212,168,75,.3)}
+.badge-green{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3)}
+
+/* Stats strip */
+.stats-strip{background:#fff;padding:28px 24px;display:flex;justify-content:center;gap:0;border-bottom:1px solid #e8edf2}
+.stat-item{text-align:center;padding:0 40px;border-left:1px solid #e8edf2}
+.stat-item:last-child{border-left:none}
+.stat-val{font-size:32px;font-weight:900;color:#6C3DD6;line-height:1}
+.stat-lbl{font-size:13px;color:#6b7280;margin-top:4px}
+
+/* Form section */
+.form-section{max-width:680px;margin:0 auto;padding:48px 24px 80px}
+.section-title{font-size:26px;font-weight:900;color:#1C2A2A;margin-bottom:6px}
+.section-sub{font-size:15px;color:#6b7280;margin-bottom:32px}
+
+.form-card{background:#fff;border-radius:20px;padding:40px;box-shadow:0 4px 32px rgba(0,0,0,.08);border:1px solid #e8edf2}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:14px;font-weight:700;color:#374151;margin-bottom:6px}
+.form-group label span.req{color:#ef4444;margin-right:2px}
+.form-control{width:100%;padding:13px 16px;border:2px solid #e8edf2;border-radius:12px;font-size:15px;font-family:'Tajawal',Arial,sans-serif;color:#1C2A2A;outline:none;transition:.2s;background:#fafafa}
+.form-control:focus{border-color:#6C3DD6;background:#fff;box-shadow:0 0 0 3px rgba(108,61,214,.1)}
+.form-control::placeholder{color:#9ca3af}
+select.form-control{cursor:pointer}
+
+.divider{border:none;border-top:1px solid #f3f4f6;margin:24px 0}
+.divider-label{text-align:center;font-size:13px;font-weight:700;color:#9ca3af;position:relative;margin:24px 0}
+.divider-label::before,.divider-label::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#f3f4f6}
+.divider-label::before{right:0}
+.divider-label::after{left:0}
+
+.info-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;font-size:14px;color:#166534;display:flex;gap:10px;align-items:flex-start}
+
+.btn-submit{width:100%;padding:16px;background:linear-gradient(135deg,#6C3DD6,#22D3EE);border:none;border-radius:14px;color:#fff;font-size:18px;font-weight:800;cursor:pointer;font-family:'Tajawal',Arial,sans-serif;transition:.3s;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(108,61,214,.4)}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+/* Success */
+.success-card{display:none;background:#fff;border-radius:20px;padding:60px 40px;text-align:center;box-shadow:0 4px 32px rgba(0,0,0,.08);border:1px solid #e8edf2}
+.success-icon{width:80px;height:80px;background:linear-gradient(135deg,#10b981,#34d399);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 24px}
+.success-title{font-size:26px;font-weight:900;color:#1C2A2A;margin-bottom:10px}
+.success-msg{font-size:16px;color:#6b7280;line-height:1.7;max-width:420px;margin:0 auto}
+
+/* Footer */
+footer{background:#0D1A1A;color:rgba(255,255,255,.4);text-align:center;padding:20px;font-size:13px}
+
+/* Loading spinner */
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:600px){
+  .form-row{grid-template-columns:1fr}
+  .stats-strip{flex-wrap:wrap;gap:20px}
+  .stat-item{border-left:none;padding:0 20px}
+  .hero-title{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="logo-box">🎓</div>
+  <h1 class="hero-title">انضم إلى <span>EduOS</span></h1>
+  <p class="hero-sub">المنصة التعليمية الذكية الأولى من نوعها في الإمارات — مدعومة بالذكاء الاصطناعي</p>
+  <div class="hero-badges">
+    <span class="badge badge-purple">🤖 ذكاء اصطناعي متكامل</span>
+    <span class="badge badge-gold">🏫 متعدد المدارس</span>
+    <span class="badge badge-green">🇦🇪 مصنوع في الإمارات</span>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-strip">
+  <div class="stat-item">
+    <div class="stat-val">1,047</div>
+    <div class="stat-lbl">طالب نشط</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">108</div>
+    <div class="stat-lbl">موظف تعليمي</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">13</div>
+    <div class="stat-lbl">دوراً مدعوماً</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">AI</div>
+    <div class="stat-lbl">وكيل ذكي لكل صفحة</div>
+  </div>
+</div>
+
+<!-- Form -->
+<div class="form-section">
+  <h2 class="section-title">اطلب انضمام مدرستك</h2>
+  <p class="section-sub">أرسل طلبك وسيتواصل معك فريق NAFAS خلال 48 ساعة لإعداد بيئة مدرستك الخاصة.</p>
+
+  <div class="info-box">
+    ✅ كل مدرسة تحصل على بيئة معزولة خاصة بها — بيانات منفصلة — رابط مخصص على نطاق eduos.ae
+  </div>
+
+  <!-- Form Card -->
+  <div class="form-card" id="formCard">
+    <form id="requestForm" onsubmit="submitRequest(event)">
+
+      <div class="divider-label">معلومات المدرسة</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم المدرسة بالعربي <span class="req">*</span></label>
+          <input class="form-control" id="schoolAr" type="text" placeholder="مثال: مدرسة الأمل الذكية" required>
+        </div>
+        <div class="form-group">
+          <label>School Name in English <span class="req">*</span></label>
+          <input class="form-control" id="schoolEn" type="text" placeholder="e.g. Al-Amal Smart School" required style="direction:ltr">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>الإمارة <span class="req">*</span></label>
+          <select class="form-control" id="emirate" required>
+            <option value="">— اختر الإمارة —</option>
+            <option value="abu_dhabi">أبوظبي</option>
+            <option value="dubai">دبي</option>
+            <option value="sharjah">الشارقة</option>
+            <option value="ajman">عجمان</option>
+            <option value="rak">رأس الخيمة</option>
+            <option value="fujairah">الفجيرة</option>
+            <option value="uaq">أم القيوين</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>النظام التعليمي <span class="req">*</span></label>
+          <select class="form-control" id="eduSystem" required>
+            <option value="">— اختر النظام —</option>
+            <option value="MOE">وزارة التربية والتعليم (MOE)</option>
+            <option value="ADEK">هيئة أبوظبي للتعليم (ADEK)</option>
+            <option value="KHDA">هيئة المعرفة دبي (KHDA)</option>
+            <option value="British">المنهج البريطاني</option>
+            <option value="American">المنهج الأمريكي</option>
+            <option value="IB">البكالوريا الدولية (IB)</option>
+            <option value="CBSE">المنهج الهندي (CBSE)</option>
+            <option value="Other">أخرى</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>المرحلة الدراسية</label>
+          <select class="form-control" id="gradeRange">
+            <option value="">— اختر المرحلة —</option>
+            <option value="KG">رياض الأطفال فقط (KG)</option>
+            <option value="KG-G6">KG — الصف 6</option>
+            <option value="KG-G9">KG — الصف 9</option>
+            <option value="KG-G12">KG — الصف 12 (كاملة)</option>
+            <option value="G1-G6">الصف 1 — الصف 6</option>
+            <option value="G7-G12">الصف 7 — الصف 12</option>
+            <option value="G1-G12">الصف 1 — الصف 12</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>العدد التقريبي للطلاب</label>
+          <select class="form-control" id="studentCount">
+            <option value="">— اختر —</option>
+            <option value="lt200">أقل من 200</option>
+            <option value="200-500">200 – 500</option>
+            <option value="500-1000">500 – 1,000</option>
+            <option value="1000-2000">1,000 – 2,000</option>
+            <option value="gt2000">أكثر من 2,000</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider-label">بيانات مسؤول التواصل</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>الاسم الكامل <span class="req">*</span></label>
+          <input class="form-control" id="contactName" type="text" placeholder="اسم مدير أو منسق المدرسة" required>
+        </div>
+        <div class="form-group">
+          <label>المسمى الوظيفي</label>
+          <input class="form-control" id="contactRole" type="text" placeholder="مثال: مدير المدرسة">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>البريد الإلكتروني <span class="req">*</span></label>
+          <input class="form-control" id="contactEmail" type="email" placeholder="email@school.ae" required style="direction:ltr">
+        </div>
+        <div class="form-group">
+          <label>رقم الهاتف <span class="req">*</span></label>
+          <input class="form-control" id="contactPhone" type="tel" placeholder="+971 50 000 0000" required style="direction:ltr">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظات إضافية</label>
+        <textarea class="form-control" id="notes" rows="3" placeholder="أي تفاصيل إضافية تودّ إضافتها…" style="resize:vertical"></textarea>
+      </div>
+
+      <button class="btn-submit" type="submit" id="submitBtn">
+        إرسال الطلب ←
+      </button>
+
+      <div id="formError" style="color:#ef4444;font-size:14px;text-align:center;margin-top:12px;min-height:18px"></div>
+    </form>
+  </div>
+
+  <!-- Success card -->
+  <div class="success-card" id="successCard">
+    <div class="success-icon">✅</div>
+    <h3 class="success-title">وصل طلبك بنجاح!</h3>
+    <p class="success-msg">
+      شكراً لاهتمامك بـ EduOS 🎓<br>
+      سيتواصل معك فريق NAFAS خلال <strong>48 ساعة</strong> على البريد الذي أدخلته.<br><br>
+      <strong>NAFAS FOR ARTIFICIAL INTELLIGENCE · CN-6573712</strong>
+    </p>
+  </div>
+</div>
+
+<footer>
+  © 2026 NAFAS FOR ARTIFICIAL INTELLIGENCE · CN-6573712 · أبوظبي، الإمارات العربية المتحدة
+</footer>
+
+<script>
+// ── Supabase config (nafas-control anon) ──
+const SB_URL = 'https://wuwwfsbaskhjtegtraot.supabase.co';
+const _k1='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.';
+const _k2='eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d3dmc2Jhc2toanRlZ3RyYW90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODU0MDYsImV4cCI6MjA5ODg2MTQwNn0.';
+const _k3='JQgRajxz0bu19s0IrvrTjAdugoRty4-m2arz6UZBiGk';
+const SB_KEY = _k1+_k2+_k3;
+
+async function submitRequest(e){
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const errEl = document.getElementById('formError');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> جارٍ الإرسال…';
+
+  const payload = {
+    school_name_ar:  document.getElementById('schoolAr').value.trim(),
+    school_name_en:  document.getElementById('schoolEn').value.trim(),
+    emirate:         document.getElementById('emirate').value,
+    edu_system:      document.getElementById('eduSystem').value,
+    grade_range:     document.getElementById('gradeRange').value,
+    student_count:   document.getElementById('studentCount').value,
+    contact_name:    document.getElementById('contactName').value.trim(),
+    contact_role:    document.getElementById('contactRole').value.trim(),
+    contact_email:   document.getElementById('contactEmail').value.trim(),
+    contact_phone:   document.getElementById('contactPhone').value.trim(),
+    notes:           document.getElementById('notes').value.trim(),
+    status:          'pending',
+    submitted_at:    new Date().toISOString()
+  };
+
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/school_requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer':        'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if(!res.ok){
+      const txt = await res.text();
+      throw new Error(txt);
+    }
+
+    // Show success
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+    window.scrollTo({top: document.getElementById('successCard').offsetTop - 40, behavior:'smooth'});
+
+  } catch(err){
+    console.error(err);
+    errEl.textContent = 'حدث خطأ أثناء الإرسال — يرجى المحاولة مجدداً';
+    btn.disabled = false;
+    btn.innerHTML = 'إرسال الطلب ←';
+  }
+}
+</script>
+</body>
+</html>
