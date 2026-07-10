@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduOS — وضع عدم الاتصال</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Tajawal', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .icon {
+      font-size: 72px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 900;
+      color: #1e293b;
+      margin-bottom: 12px;
+    }
+
+    h1 span {
+      display: block;
+      font-size: 16px;
+      font-weight: 400;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .desc {
+      font-size: 16px;
+      color: #64748b;
+      line-height: 1.7;
+      margin: 20px 0 32px;
+    }
+
+    .tips {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+      text-align: right;
+    }
+
+    .tips h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 12px;
+    }
+
+    .tips ul {
+      list-style: none;
+      font-size: 14px;
+      color: #64748b;
+      line-height: 2;
+    }
+
+    .tips ul li::before {
+      content: '• ';
+      color: #6C3DD6;
+      font-weight: 700;
+    }
+
+    .btn-retry {
+      background: linear-gradient(135deg, #6C3DD6, #22D3EE);
+      color: #ffffff;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Tajawal', Arial, sans-serif;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .btn-retry:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(108, 61, 214, 0.3);
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .online-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .offline-indicator {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    .offline-dot { background: #ef4444; }
+
+    .footer {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <span class="icon">📡</span>
+
+    <h1>
+      لا يوجد اتصال بالإنترنت
+      <span>No Internet Connection</span>
+    </h1>
+
+    <p class="desc">
+      يتطلب EduOS اتصالاً بالإنترنت للوصول إلى بيانات المدرسة.
+      <br>
+      EduOS requires an internet connection to access school data.
+    </p>
+
+    <div class="tips">
+      <h3>تحقق من الآتي:</h3>
+      <ul>
+        <li>اتصال الواي فاي أو البيانات</li>
+        <li>إعادة تشغيل الراوتر</li>
+        <li>التحقق من حصة الإنترنت</li>
+        <li>الاتصال بقسم تقنية المعلومات</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <span class="online-indicator offline-indicator" id="statusBadge">
+        <span class="dot offline-dot" id="statusDot"></span>
+        <span id="statusText">غير متصل / Offline</span>
+      </span>
+    </div>
+
+    <button class="btn-retry" onclick="checkAndRetry()">
+      🔄 إعادة المحاولة / Retry
+    </button>
+
+    <p class="status" id="retryStatus"></p>
+  </div>
+
+  <div class="footer">
+    © 2026 NAFAS FOR ARTIFICIAL INTELLIGENCE · CN-6573712 · EduOS
+  </div>
+
+  <script>
+    // Auto-retry when online
+    window.addEventListener('online', function () {
+      document.getElementById('statusText').textContent = 'متصل الآن! يُعاد التحميل...';
+      document.getElementById('statusDot').style.background = '#10b981';
+      document.getElementById('statusBadge').style.background = 'rgba(16,185,129,0.1)';
+      document.getElementById('statusBadge').style.color = '#10b981';
+      setTimeout(() => location.reload(), 1500);
+    });
+
+    function checkAndRetry() {
+      const btn = document.querySelector('.btn-retry');
+      const status = document.getElementById('retryStatus');
+      btn.disabled = true;
+      btn.textContent = '⏳ جاري التحقق...';
+      status.textContent = '';
+
+      fetch('/apps/platform-config.js', { cache: 'no-store' })
+        .then(() => {
+          status.textContent = '✅ تم الاتصال — يُعاد التحميل...';
+          setTimeout(() => {
+            history.back();
+            setTimeout(() => location.href = '/apps/eduos-login/', 500);
+          }, 800);
+        })
+        .catch(() => {
+          status.textContent = '❌ لا يزال غير متصل. حاول مرة أخرى.';
+          btn.disabled = false;
+          btn.textContent = '🔄 إعادة المحاولة / Retry';
+        });
+    }
+  </script>
+
+</body>
+</html>
