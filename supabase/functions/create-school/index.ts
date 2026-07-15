@@ -95,6 +95,23 @@ serve(async (req) => {
       }
     }
 
+    // ── 2b. Inject Secrets into new project (GEMINI_API_KEY from NAFAS master) ──
+    const GEMINI_MASTER_KEY = Deno.env.get('GEMINI_MASTER_KEY') || ''
+    if (newProjectRef && MGMT_TOKEN && GEMINI_MASTER_KEY) {
+      try {
+        await fetch(`https://api.supabase.com/v1/projects/${newProjectRef}/secrets`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + MGMT_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify([
+            { name: 'GEMINI_API_KEY', value: GEMINI_MASTER_KEY }
+          ])
+        })
+      } catch (_) { /* non-fatal — log but continue */ }
+    }
+
     // ── 3. Apply Schema to new project ──
     const GH_TOKEN = Deno.env.get('SYNC_TOKEN') || ''
     if (newProjectRef && MGMT_TOKEN) {
@@ -394,6 +411,23 @@ CREATE TABLE IF NOT EXISTS app_settings (
   updated_at   timestamptz DEFAULT now(),
   modules      jsonb DEFAULT '{"umq":false,"midad":false,"nafas":false}'
 );
+
+CREATE TABLE IF NOT EXISTS ai_usage_log (
+  id             uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  school_id      text NOT NULL,
+  user_id        text,
+  role_key       text,
+  feature        text NOT NULL,
+  model          text DEFAULT 'gemini-2.0-flash',
+  prompt_tokens  integer DEFAULT 0,
+  output_tokens  integer DEFAULT 0,
+  total_tokens   integer DEFAULT 0,
+  cost_usd       numeric(10,6) DEFAULT 0,
+  status         text DEFAULT 'success',
+  created_at     timestamptz DEFAULT now()
+);
+ALTER TABLE ai_usage_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY anon_read_ai_usage_log ON ai_usage_log FOR SELECT USING (true);
 
 CREATE TABLE IF NOT EXISTS platform_state (
   id             uuid DEFAULT gen_random_uuid() PRIMARY KEY,
