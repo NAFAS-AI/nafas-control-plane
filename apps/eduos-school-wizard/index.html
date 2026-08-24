@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <script src="../platform-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../platform-auth-guard.js"></script>
 <style>
 
 /* ── Login Gate ───────────────────────────── */
@@ -1188,7 +1189,7 @@ async function init() {
     const data = await r.json();
     if(Array.isArray(data)) {
       WIZ._allSchoolsRaw = data;
-      console.log('Loaded', data.length, 'schools from nafas-control');
+      // schools loaded (count suppressed for security)
     }
   } catch(e) { console.warn('Could not load schools:', e); }
 }
