@@ -148,6 +148,17 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
 
 /* Count badge */
 .count-badge{display:inline-flex;align-items:center;gap:4px;background:#f0ebff;color:#6C3DD6;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-right:8px;}
+/* Staff-gender selection (inside the white wizard card) */
+.gender-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
+.gender-card{background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px;padding:24px;cursor:pointer;transition:all .25s;text-align:center;font-family:inherit;}
+.gender-card:hover{border-color:#22D3EE;background:#ecfeff;}
+.gender-card.selected{border-color:#6C3DD6;background:#f0ebff;}
+.gender-card:focus-visible{outline:3px solid #22D3EE;outline-offset:3px;}
+.gender-icon,.gender-title,.gender-desc{display:block;}
+.gender-icon{font-size:40px;margin-bottom:12px;}
+.gender-title{font-size:18px;font-weight:700;color:#1C2A2A;margin-bottom:8px;}
+.gender-desc{font-size:13px;color:#475569;line-height:1.6;}
+
 </style>
 </head>
 <body>
@@ -172,7 +183,7 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
   </div>
 
   <!-- Progress bar -->
-  <div class="wiz-progress"><div class="wiz-progress-fill" id="progressFill" style="width:16.6%"></div></div>
+  <div class="wiz-progress"><div class="wiz-progress-fill" id="progressFill" style="width:14.2857%"></div></div>
 
   <!-- Steps indicator -->
   <div class="steps-bar">
@@ -186,34 +197,41 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
     <div class="step-item">
       <div class="step-wrap">
         <div class="step-dot" id="dot2">2</div>
-        <div class="step-label">المراحل</div>
+        <div class="step-label">الكادر</div>
       </div>
     </div>
     <div class="step-line" id="line2"></div>
     <div class="step-item">
       <div class="step-wrap">
         <div class="step-dot" id="dot3">3</div>
-        <div class="step-label">الصفوف</div>
+        <div class="step-label">المراحل</div>
       </div>
     </div>
     <div class="step-line" id="line3"></div>
     <div class="step-item">
       <div class="step-wrap">
         <div class="step-dot" id="dot4">4</div>
-        <div class="step-label">المنهج</div>
+        <div class="step-label">الصفوف</div>
       </div>
     </div>
     <div class="step-line" id="line4"></div>
     <div class="step-item">
       <div class="step-wrap">
         <div class="step-dot" id="dot5">5</div>
-        <div class="step-label">المدير</div>
+        <div class="step-label">المنهج</div>
       </div>
     </div>
     <div class="step-line" id="line5"></div>
     <div class="step-item">
       <div class="step-wrap">
         <div class="step-dot" id="dot6">6</div>
+        <div class="step-label">المدير</div>
+      </div>
+    </div>
+    <div class="step-line" id="line6"></div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-dot" id="dot7">7</div>
         <div class="step-label">مراجعة</div>
       </div>
     </div>
@@ -309,8 +327,35 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
       </div>
     </div>
 
-    <!-- STEP 2: School Levels -->
+    <!-- STEP 2: Staff Gender -->
     <div class="step-panel" id="panel2">
+      <div class="panel-title">👥 جنس الكادر التعليمي</div>
+      <div class="panel-sub">يحدد هذا الاختيار لغة الواجهة في جميع بوابات المدرسة تلقائياً</div>
+      <div class="gender-grid">
+        <button type="button" class="gender-card" id="gc_f" onclick="selectGender('f')" aria-pressed="false">
+          <span class="gender-icon">👩‍🏫</span>
+          <span class="gender-title">مؤنث</span>
+          <span class="gender-desc">كادر تدريسي نسائي بالكامل<br><small>معلمة، مديرة، نائبة المديرة</small></span>
+        </button>
+        <button type="button" class="gender-card" id="gc_m" onclick="selectGender('m')" aria-pressed="false">
+          <span class="gender-icon">👨‍🏫</span>
+          <span class="gender-title">مذكر</span>
+          <span class="gender-desc">كادر تدريسي ذكوري بالكامل<br><small>معلم، مدير، نائب المدير</small></span>
+        </button>
+        <button type="button" class="gender-card selected" id="gc_n" onclick="selectGender('n')" aria-pressed="true">
+          <span class="gender-icon">👥</span>
+          <span class="gender-title">محايد</span>
+          <span class="gender-desc">كادر مختلط أو مشترك<br><small>معلم/ة، مدير/ة، نائب/ة</small></span>
+        </button>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(1)">→ رجوع</button>
+        <button class="btn-next" onclick="goStep(3)">التالي ←</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: School Levels -->
+    <div class="step-panel" id="panel3">
       <div class="panel-title">📚 المراحل الدراسية</div>
       <div class="panel-sub">اختر المراحل الموجودة في المدرسة</div>
 
@@ -318,13 +363,13 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
       </div>
 
       <div class="btn-row">
-        <button class="btn-back" onclick="goStep(1)">→ السابق</button>
-        <button class="btn-next" id="btnNext2" onclick="goStep(3)">التالي ←</button>
+        <button class="btn-back" onclick="goStep(2)">→ السابق</button>
+        <button class="btn-next" id="btnNext3" onclick="goStep(4)">التالي ←</button>
       </div>
     </div>
 
-    <!-- STEP 3: Classes per grade -->
-    <div class="step-panel" id="panel3">
+    <!-- STEP 4: Classes per grade -->
+    <div class="step-panel" id="panel4">
       <div class="panel-title">🏷️ الشُعب لكل صف</div>
       <div class="panel-sub">حدد عدد الشُعب (الفصول) لكل صف — كل صف مستقل</div>
 
@@ -342,13 +387,13 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
       </div>
 
       <div class="btn-row">
-        <button class="btn-back" onclick="goStep(2)">→ السابق</button>
-        <button class="btn-next" onclick="goStep(4)">التالي ←</button>
+        <button class="btn-back" onclick="goStep(3)">→ السابق</button>
+        <button class="btn-next" onclick="goStep(5)">التالي ←</button>
       </div>
     </div>
 
-    <!-- STEP 4: Curriculum -->
-    <div class="step-panel" id="panel4">
+    <!-- STEP 5: Curriculum -->
+    <div class="step-panel" id="panel5">
       <div class="panel-title">📖 نظام المنهج</div>
       <div class="panel-sub">تم اكتشافه تلقائياً — يمكن التعديل إذا لزم</div>
 
@@ -405,13 +450,13 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
       </div>
 
       <div class="btn-row">
-        <button class="btn-back" onclick="goStep(3)">→ السابق</button>
-        <button class="btn-next" onclick="goStep(5)">التالي ←</button>
+        <button class="btn-back" onclick="goStep(4)">→ السابق</button>
+        <button class="btn-next" onclick="goStep(6)">التالي ←</button>
       </div>
     </div>
 
-    <!-- STEP 5: Admin account -->
-    <div class="step-panel" id="panel5">
+    <!-- STEP 6: Admin account -->
+    <div class="step-panel" id="panel6">
       <div class="panel-title">👤 حساب مدير المدرسة</div>
       <div class="panel-sub">سيُستخدم للدخول الأول على المنصة</div>
 
@@ -448,13 +493,13 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
       </div>
 
       <div class="btn-row">
-        <button class="btn-back" onclick="goStep(4)">→ السابق</button>
-        <button class="btn-next" id="btnNext5" onclick="goStep(6)">التالي ←</button>
+        <button class="btn-back" onclick="goStep(5)">→ السابق</button>
+        <button class="btn-next" id="btnNext6" onclick="goStep(7)">التالي ←</button>
       </div>
     </div>
 
-    <!-- STEP 6: Review & Submit -->
-    <div class="step-panel" id="panel6">
+    <!-- STEP 7: Review & Submit -->
+    <div class="step-panel" id="panel7">
       <div class="panel-title">✅ مراجعة وتأكيد</div>
       <div class="panel-sub">راجع البيانات قبل إنشاء المدرسة</div>
 
@@ -463,6 +508,7 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
         <div class="review-row"><span class="review-label">الاسم</span><span class="review-val" id="rv-name">—</span></div>
         <div class="review-row"><span class="review-label">الإمارة</span><span class="review-val" id="rv-emirate">—</span></div>
         <div class="review-row"><span class="review-label">النوع</span><span class="review-val" id="rv-type">—</span></div>
+        <div class="review-row"><span class="review-label">جنس الكادر</span><span class="review-val" id="rv-gender">—</span></div>
         <div class="review-row"><span class="review-label">الجهة</span><span class="review-val" id="rv-authority">—</span></div>
       </div>
 
@@ -486,7 +532,7 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
       </div>
 
       <div class="btn-row">
-        <button class="btn-back" onclick="goStep(5)">→ السابق</button>
+        <button class="btn-back" onclick="goStep(6)">→ السابق</button>
         <button class="btn-submit" onclick="submitSchool()">🚀 إنشاء المدرسة</button>
       </div>
     </div>
@@ -520,6 +566,7 @@ input:checked + .toggle-slider:before{transform:translateX(18px);}
 // ============================================================
 const WIZ = {
   step: 1,
+  staff_gender: 'n',
   country: 'UAE',
   emirate: '',
   schoolType: 'all',
@@ -584,6 +631,8 @@ const CURRICULUM_LABELS = {
   DepEd:'المنهج الفلبيني', Pakistan_Board:'المنهج الباكستاني', Other:'آخر',
 };
 
+const GENDER_LABELS_WIZ = {f:'مؤنث 👩‍🏫', m:'مذكر 👨‍🏫', n:'محايد 👥'};
+
 const LANG_LABELS = {ar:'العربية', en:'الإنجليزية', bilingual:'ثنائي اللغة', fr:'الفرنسية'};
 
 // ============================================================
@@ -595,24 +644,38 @@ function goStep(n) {
   WIZ.step = n;
   document.getElementById('panel'+n).classList.add('active');
   updateStepsBar(n);
-  document.getElementById('progressFill').style.width = (n/6*100) + '%';
-  if(n===3) buildGradesTable();
-  if(n===6) buildReview();
+  document.getElementById('progressFill').style.width = (n/7*100) + '%';
+  if(n===4) buildGradesTable();
+  if(n===7) buildReview();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function updateStepsBar(active) {
-  for(let i=1;i<=6;i++){
+  for(let i=1;i<=7;i++){
     const dot = document.getElementById('dot'+i);
     dot.classList.remove('active','done');
     if(i<active) { dot.classList.add('done'); dot.textContent='✓'; }
     else if(i===active) { dot.classList.add('active'); dot.textContent=i; }
     else { dot.textContent=i; }
-    if(i<6){
+    if(i<7){
       const line=document.getElementById('line'+i);
       line.classList.toggle('done',i<active);
     }
   }
+}
+
+// ============================================================
+// STEP 2 — STAFF GENDER
+function selectGender(g) {
+  if(!['f','m','n'].includes(g)) return;
+  WIZ.staff_gender = g;
+  ['f','m','n'].forEach(x => {
+    const el = document.getElementById('gc_'+x);
+    if(el) {
+      el.classList.toggle('selected', x===g);
+      el.setAttribute('aria-pressed', x===g ? 'true' : 'false');
+    }
+  });
 }
 
 // ============================================================
@@ -855,6 +918,8 @@ function buildReview() {
   document.getElementById('rv-name').textContent = name;
   document.getElementById('rv-emirate').textContent = WIZ.emirate;
   document.getElementById('rv-type').textContent = WIZ.isManual ? 'يدوي' : TYPE_LABELS[WIZ.schoolData?.school_type]||'—';
+  const genderEl = document.getElementById('rv-gender');
+  if(genderEl) genderEl.textContent = GENDER_LABELS_WIZ[WIZ.staff_gender]||'محايد';
   document.getElementById('rv-authority').textContent = document.getElementById('selAuthority').value;
   document.getElementById('rv-curriculum').textContent = CURRICULUM_LABELS[document.getElementById('selCurriculum').value]||'—';
   document.getElementById('rv-lang').textContent = LANG_LABELS[document.getElementById('selLang').value]||'—';
@@ -911,6 +976,7 @@ async function submitSchool() {
         grades_detail: WIZ.grades,
       },
       school_type: WIZ.schoolData?.school_type || 'private_arabic',
+      staff_gender: WIZ.staff_gender || 'n',
       admin: {
         name_ar: document.getElementById('adminNameAr').value,
         name_en: document.getElementById('adminNameEn').value,
@@ -932,7 +998,7 @@ async function submitSchool() {
       const url = 'https://' + domain;
       document.getElementById('successUrl').textContent = url;
       document.getElementById('successBtn').href = url;
-      document.getElementById('panel6').classList.remove('active');
+      document.getElementById('panel7').classList.remove('active');
       document.getElementById('panelSuccess').classList.add('active');
       document.getElementById('progressFill').style.width='100%';
     } else {
