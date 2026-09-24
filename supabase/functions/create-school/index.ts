@@ -13,7 +13,7 @@ serve(async (req) => {
     const {
       name_ar, name_en, country, city, system,
       grades, subdomain, admin, schedule,
-      curriculum, classes_per_grade
+      curriculum, classes_per_grade, staff_gender
     } = body
 
     // ── 1. Register school in NAFAS Control Plane (master Supabase) ──
@@ -33,7 +33,8 @@ serve(async (req) => {
       admin_email: admin?.email,
       curriculum,
       classes_per_grade,
-      schedule_config: schedule
+      schedule_config: schedule,
+      staff_gender: staff_gender || 'n'
     }
 
     let schoolId = null
@@ -274,8 +275,9 @@ INSERT INTO app_settings (key, value) VALUES
   ('edu_system',     '${(grades?.[0]||'UAE').replace(/'/g,"''")}'),
   ('grades',         '${(grades?.join(',')||'').replace(/'/g,"''")}'),
   ('term_count',     '${schedule?.term_count || 2}'),
-  ('academic_year',  '2025-2026')
-ON CONFLICT (key) DO NOTHING;
+  ('academic_year',  '2025-2026'),
+  ('staff_gender',   '${staff_gender || "n"}')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- ── Bootstrap: platform_state ─────────────────────────────────────
 INSERT INTO platform_state (school_id, state, label_ar, label_en, is_active)
